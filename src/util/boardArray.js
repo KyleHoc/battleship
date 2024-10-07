@@ -1,3 +1,5 @@
+import { nanoid } from "nanoid"
+
 //Create an empty array for building the board array of objects
 let tempArray = []
 
@@ -13,6 +15,7 @@ tempArray = tempArray.map((coord) => {
 
   //These space objects will be used to create the battleship board
   let space = {
+    id: nanoid(),
     coordinates: coord,
     hit: false,
     symbol: 'O',
