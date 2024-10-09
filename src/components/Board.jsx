@@ -12,7 +12,7 @@ export default function Board(props){
 
     //Return a button to be displayed on the board, setting it's contents based on whether or not it has been hit
     return (
-        <button className='btn btn-primary space-btn' style={styles} onClick={props.shoot} disabled={props.hit}>
+        <button className='btn btn-primary space-btn' style={styles} onClick={props.shoot} disabled={props.hit || props.end}>
             {props.hit ? props.symbol : symbol }
         </button>
     )

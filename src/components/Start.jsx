@@ -5,7 +5,7 @@ export default function Start(props){
 
     //Return a button to be displayed on the board, setting it's contents based on whether or not it has been hit
     return (
-        <div className="card border-primary mb-3 text-center col-md-6 col-sm-12">
+        <div className="card border-primary mb-3 text-center col-lg-7 col-md-9 col-sm-12">
             <div className="card-header bg-primary text-light"><h4 className="text-white">Welcome to Battleship: REACT</h4></div>
             <div className="card-body">
                 <h4 className="card-title">Rules:</h4>

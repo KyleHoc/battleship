@@ -15,42 +15,56 @@ import { cruiserCoordinates } from './util/cruiserCoordinates';
 import { destroyerCoordinates } from './util/destroyerCoordinates';
 import { compareArrays } from './util/compareArrays';
 import "bootstrap-icons/font/bootstrap-icons.css";
+import { nanoid } from 'nanoid';
 
 function App() {
+
+  //Variable for setting the game's end state
+  let [end, setEnd] = React.useState(false)
+
+  let [restart, setRestart] = React.useState(false)
   
   //Create an array of space objects and give it state
   let [board, setBoard] = React.useState(boardArray)
 
+  //Create an array in state for displaying the game's text component
+  let [text, setText] = React.useState(['Turn 0: Ships have been placed, game start'])
+
   //Store a variable for counting how many times an occupied space is hit
   let [hitCounter, setHitCounter] = React.useState(0)
- 
-  //Store a variable for displaying victory text
-  let [winText, setWinText] = React.useState('');
 
+  //Store a variable for keeping track of the number of turns taken
+  let [turnCounter, setTurnCounter] = React.useState(0)
+
+  //Store a variable that initializes the game's start status to false
   let [gameStart, setGameStart] = React.useState(false);
 
-  var w = window.innerWidth;
+  let finalCoord;
 
-  //Obtain an array of coordinates to place the battleship piece
-  //  by calling the battleshipCoordinates function using the board array
-  let battleshipCoord = battleshipCoordinates(boardArray)
+  function createCoordinates(){
+    //Obtain an array of coordinates to place the battleship piece
+    //  by calling the battleshipCoordinates function using the board array
+    let battleshipCoord = battleshipCoordinates(boardArray)
 
-  //Get a set of viable coordinates for placing the cruiser piece
-  let cruiserCoord = cruiserCoordinates(boardArray, battleshipCoord)
+    //Get a set of viable coordinates for placing the cruiser piece
+    let cruiserCoord = cruiserCoordinates(boardArray, battleshipCoord)
 
-  //Combine the battleship and cruiser coordinates into one array
-  let combinedCoord = battleshipCoord.concat(cruiserCoord)
+    //Combine the battleship and cruiser coordinates into one array
+    let combinedCoord = battleshipCoord.concat(cruiserCoord)
 
-  //Use the combinedCoord array to get a viable set of coordinates for placing the destroyer ship
-  let destroyerCoord = destroyerCoordinates(boardArray, combinedCoord)
+    //Use the combinedCoord array to get a viable set of coordinates for placing the destroyer ship
+    let destroyerCoord = destroyerCoordinates(boardArray, combinedCoord)
 
-  //Join all three coordinate arrays into one
-  let finalCoord = combinedCoord.concat(destroyerCoord)
-
-  console.log(finalCoord)
+    //Join all three coordinate arrays into one
+    return combinedCoord.concat(destroyerCoord)
+  }
 
   //Call useEffect for setting the board to provide the board's default state and prevent an infinite loop
+  //Rerun the effect every time restart is changed to reset the game for another round
   useEffect(() => {
+      finalCoord = createCoordinates();
+      console.log(finalCoord)
+
       //Loop through battleshipCoord to change the state of each space that the battleship will occupy
       for(let x = 0; x < finalCoord.length; x++){
         //Change the state of the board so that the spaces with the matching coordinates from battleshipCoord are occupied
@@ -60,23 +74,47 @@ function App() {
             //Determine if the current coordinate is in the finalCoord array
             let match = compareArrays(space.coordinates, finalCoord[x])
             //If the match is found, set the space's symbol to X and set occupied to true, otherwise map over the unchanged space
-            return match ? {...space, symbol: 'X', occupied: true} : space
+            //hit is changed to false no matter what, so that when the game restarts, all spaces will be set to false
+            return match ? {...space, symbol: 'X', occupied: true, hit: false} : {...space, hit: false}
           })
         })
       }
-  }, [])
+  }, [restart])
 
   //Function for beginning the game by setting start game to true
   function beginGame(){
       setGameStart(true);
   }
 
+  function restartGame(){
+    setBoard(boardArray)
+    setRestart(prev => !prev)
+    setText(['Turn 0: Ships have been placed, game start'])
+    setHitCounter(0)
+    setTurnCounter(0)
+    setEnd(false)
+  }
+
   //Onclick function for when the user selects a space
   function shoot(id){
+
+    //Set a string variable for building a message for the text component
+    let result = 'MISS.';
+
+    //Increment turn counter
+    setTurnCounter(prev => prev + 1)
+
     //Change the state of the board to reflect that a space has been shot at
     setBoard(prev => prev.map(space => {
       //Create a variable to pass over to reflect the new state
       let newSpace = space;
+
+      //Create a new text variable to modify
+      let newText = text;
+
+      //Temp variable for building the message string
+      let turn = turnCounter + 1;
+      
 
       //When the space with the same ID as the one the user clicked is found:
       if(space.id === id){
@@ -86,7 +124,15 @@ function App() {
         //If the space is occupied by a ship piece, increment the hit counter
         if(space.occupied){
           setHitCounter(prev => prev + 1)
+
+          //Change the result variable to HIT because an occupied space was hit
+          result = "HIT!"
         }
+
+        //Build a message string for this turn, and then shift it onto the start of the text array
+        let message = `Turn ${turn}: Space ${space.coordinates[0]} - ${space.coordinates[1]}, ${result} `
+        newText.unshift(message)
+        setText(newText)
       }
 
       //Return the updated space
@@ -103,13 +149,22 @@ function App() {
       occupied={space.occupied}
       hit={space.hit}
       shoot={() => shoot(space.id)}
+      end={end}
+    />
+  ))
+
+  //Create an array of text elements to build the text component
+  let textElements = text.map(message => (
+    <Textbox
+      key = {nanoid()} 
+      text={message}
     />
   ))
 
   //useEffect runs every time the hitCounter is updated. When hitCounter == 9, the game is over
   useEffect(() => {
     if(hitCounter > 8){
-      setWinText("YOU WIN")
+      setEnd(true)
     }
   }, [board])
 
@@ -125,8 +180,18 @@ function App() {
     </div>
   </Col>
 
-  <Col xs={3} md={3}>{w} <br />
-    <Textbox />
+  <Col xs={10} md={5} className='right-col mt-4 text-left'>
+    <div className="card text-white bg-primary text-container"> 
+        <div className="card-header">Turn: {turnCounter} &nbsp; &nbsp; Hits: {hitCounter}</div>
+        <div className="card-body">
+           {end && <div className="bg-white text-black p-2">
+                      <p>Congratulations! You Won!</p>
+                      <button className="btn btn-primary" onClick={restartGame}>Play Again</button>
+                  </div>
+           }
+           {textElements}
+        </div>
+    </div>
   </Col>
 </Row> 
 
