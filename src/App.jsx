@@ -22,6 +22,7 @@ function App() {
   //Variable for setting the game's end state
   let [end, setEnd] = React.useState(false)
 
+  //Variable for resetting game
   let [restart, setRestart] = React.useState(false)
   
   //Create an array of space objects and give it state
@@ -38,6 +39,12 @@ function App() {
 
   //Store a variable that initializes the game's start status to false
   let [gameStart, setGameStart] = React.useState(false);
+
+  //Variable for displaying text when the game ends
+  let [endText, setEndText] = React.useState("Congratulations! You won!")
+
+  //Variable for toggling challenge mode on and off
+  let [challengeMode, setChallengeMode] = React.useState(false);
 
   let finalCoord;
 
@@ -62,14 +69,14 @@ function App() {
   //Call useEffect for setting the board to provide the board's default state and prevent an infinite loop
   //Rerun the effect every time restart is changed to reset the game for another round
   useEffect(() => {
+      //Call create coordinates to create a new array of random coordinates for the game
       finalCoord = createCoordinates();
       console.log(finalCoord)
-
-      //Loop through battleshipCoord to change the state of each space that the battleship will occupy
+      //Loop through finalCoord to change the state of each space that the battleship will occupy
       for(let x = 0; x < finalCoord.length; x++){
-        //Change the state of the board so that the spaces with the matching coordinates from battleshipCoord are occupied
+        //Change the state of the board so that the spaces with the matching coordinates from finalCoord are occupied
         setBoard(prev => {
-          //Map over the board to change the state of the space with the coordinate at the current index of battleshipCoord
+          //Map over the board to change the state of the space with the coordinate at the current index of finalCoord
           return prev.map((space) => {
             //Determine if the current coordinate is in the finalCoord array
             let match = compareArrays(space.coordinates, finalCoord[x])
@@ -81,18 +88,27 @@ function App() {
       }
   }, [restart])
 
-  //Function for beginning the game by setting start game to true
-  function beginGame(){
-      setGameStart(true);
-  }
-
-  function restartGame(){
+  //Function that sets the game to it's default state and creates a new board
+  function defaultGame(){
+    setGameStart(true)
     setBoard(boardArray)
     setRestart(prev => !prev)
     setText(['Turn 0: Ships have been placed, game start'])
     setHitCounter(0)
     setTurnCounter(0)
-    setEnd(false)
+    setEnd(false);
+  }
+
+  //Onclick function for initiating challenge mode, it calls defaultGame, sets challenge mode to true, and sets the end message for challenge mode
+  function startChallengeMode(){
+    setChallengeMode(true);
+    defaultGame();
+  }
+
+  //Onclick function for starting the game outside of challenge mode, challenge mode is set to false and the end message is guaranteed to be for winning
+  function restartGame(){
+    defaultGame()
+    setChallengeMode(false)
   }
 
   //Onclick function for when the user selects a space
@@ -131,6 +147,12 @@ function App() {
 
         //Build a message string for this turn, and then shift it onto the start of the text array
         let message = `Turn ${turn}: Space ${space.coordinates[0]} - ${space.coordinates[1]}, ${result} `
+
+        if(challengeMode) {
+          message = `${message} (Turns remaining: ${24 - turnCounter})`
+        }
+
+    
         newText.unshift(message)
         setText(newText)
       }
@@ -163,7 +185,13 @@ function App() {
 
   //useEffect runs every time the hitCounter is updated. When hitCounter == 9, the game is over
   useEffect(() => {
+    if(challengeMode && turnCounter > 24){
+      setEnd(true)
+      setEndText("Out of shots, you lost!")
+    }
+
     if(hitCounter > 8){
+      setEndText("Congratulations! You won!")
       setEnd(true)
     }
   }, [board])
@@ -185,8 +213,9 @@ function App() {
         <div className="card-header">Turn: {turnCounter} &nbsp; &nbsp; Hits: {hitCounter}</div>
         <div className="card-body">
            {end && <div className="bg-white text-black p-2">
-                      <p>Congratulations! You Won!</p>
+                      <p>{endText}</p>
                       <button className="btn btn-primary" onClick={restartGame}>Play Again</button>
+                      <button className="btn btn-danger mx-2" onClick={startChallengeMode}>Challenge Mode</button>
                   </div>
            }
            {textElements}
@@ -206,7 +235,7 @@ function App() {
           {game} 
         </Container> 
         : <div className='mt-5 start-card d-flex justify-content-center'>
-            <Start beginGame={() => beginGame()} />
+            <Start restartGame={() => restartGame()} challengeMode={() => startChallengeMode()}/>
           </div> 
         
         }

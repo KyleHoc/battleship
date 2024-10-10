@@ -10,14 +10,20 @@ export default function Start(props){
             <div className="card-body">
                 <h4 className="card-title">Rules:</h4>
                 <ul className="text-left">
+                    <li>This is a single-player Battleship game</li>
                     <li>Three ships are randomly hidden on an 8x8 grid: Battleship &#40;4 squares&#41;, Cruiser &#40;3 squares&#41;, and Destroyer &#40;2 squares&#41; </li>
-                    <li>The goal of the game is to sink all three ships by clicking a space to shoot it</li>
+                    <li>The goal of the game is to sink all three ships by clicking a space to shoot</li>
                     <li>A "O" means that your shot missed. An "X" denotes a hit</li>
                     <li>The game ends automatically once all nine target spaces have been hit</li>
                 </ul>
-                <button className="btn btn-primary start-btn" onClick={props.beginGame}>
+                <button className="btn btn-primary start-btn" onClick={props.restartGame}>
                     Start Game
-                </button>
+                </button> <br />
+                <p className="start-or">or</p>
+                <button className="btn btn-danger start-btn" onClick={props.challengeMode}>
+                    Challenge Mode
+                </button> <br />
+                <p>You have 25 shots. Can you win before running out?</p>
             </div>
         </div>
     )

@@ -75,6 +75,7 @@ body{
 .bg-white{
   border: 5px solid #158CBA;
   border-radius: 5px;
+  overflow-x: scroll;
 }
 
 h4{
@@ -151,4 +152,12 @@ h4{
 
 li{
   margin-bottom: 8px;
+}
+
+.start-or{
+  margin-bottom: 0;
+}
+
+.repo{
+  color: white;
 }
