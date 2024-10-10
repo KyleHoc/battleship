@@ -71,7 +71,7 @@ function App() {
   useEffect(() => {
       //Call create coordinates to create a new array of random coordinates for the game
       finalCoord = createCoordinates();
-      console.log(finalCoord)
+      
       //Loop through finalCoord to change the state of each space that the battleship will occupy
       for(let x = 0; x < finalCoord.length; x++){
         //Change the state of the board so that the spaces with the matching coordinates from finalCoord are occupied
